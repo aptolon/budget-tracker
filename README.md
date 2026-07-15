@@ -1,1 +1,1 @@
-echo # budget-tracker
+# budget-tracker

@@ -1,0 +1,4 @@
+DROP TABLE IF EXISTS expenses;
+DROP TABLE IF EXISTS subcategories;
+DROP TABLE IF EXISTS categories;
+DROP TABLE IF EXISTS users;
