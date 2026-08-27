@@ -6,7 +6,8 @@ var (
 	// 400
 	ErrInvalidArgument = errors.New("invalid argument")
 	//401
-	ErrInvalidCredentials = errors.New("invalid credentials")
+	ErrInvalidCredentials  = errors.New("invalid credentials")
+	ErrInvalidRefreshToken = errors.New("invalid refresh token")
 	//403
 	ErrForbidden = errors.New("forbidden")
 	//404

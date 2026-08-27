@@ -37,11 +37,11 @@ func main() {
 	}
 	defer logger.Close()
 
-	logger.Debug("Initializing postgres connection pool")
+	logger.Debug("Initializing PostgreSQL connection pool")
 
 	pool, err := core_pgx_pool.NewPool(ctx, core_pgx_pool.NewConfigMust())
 	if err != nil {
-		logger.Fatal("Postgres connection pool init error: %w", zap.Error(err))
+		logger.Fatal("Postgres connection pool init error", zap.Error(err))
 	}
 	defer pool.Close()
 
@@ -49,9 +49,9 @@ func main() {
 	usersRepository := users_postgres_repository.NewUsersRepository(pool)
 
 	hasher := crypto_hasher.NewBcryptHasher(crypto_hasher.NewConfigMust())
-	token := crypto_token.NewJWT(crypto_token.NewConfigMust())
+	tokenService := crypto_token.NewJWT(crypto_token.NewConfigMust())
 
-	authService := auth_service.NewAuthService(usersRepository, hasher, token)
+	authService := auth_service.NewAuthService(usersRepository, hasher, tokenService)
 
 	httpConfig := core_http_server.NewConfigMust()
 
@@ -72,10 +72,7 @@ func main() {
 
 	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
 	apiVersionRouter.AddRoutes(
-		authTransportHTTP.Routes(
-			core_http_middleware.Auth(token),
-			core_http_middleware.RequireAdmin(),
-		)...,
+		authTransportHTTP.Routes()...,
 	)
 	httpServer.RegisterAPIRouters(apiVersionRouter)
 	if err := httpServer.Run(ctx); err != nil {

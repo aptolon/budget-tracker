@@ -101,6 +101,10 @@ func (h *HTTPResponseHeader) ErrorResponse(err error, msg string) {
 	case errors.Is(err, core_errors.ErrInvalidArgument):
 		statusCode = http.StatusBadRequest
 		logFunc = h.log.Warn
+
+	case errors.Is(err, core_errors.ErrInvalidRefreshToken):
+		statusCode = http.StatusUnauthorized
+		logFunc = h.log.Warn
 	case errors.Is(err, core_errors.ErrInvalidCredentials):
 		statusCode = http.StatusUnauthorized
 		logFunc = h.log.Warn

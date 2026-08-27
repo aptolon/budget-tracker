@@ -5,7 +5,6 @@ import (
 	"net/http"
 
 	"github.com/aptolon/budget-tracker/internal/core/domain"
-	core_http_middleware "github.com/aptolon/budget-tracker/internal/core/transport/http/middleware"
 	core_http_server "github.com/aptolon/budget-tracker/internal/core/transport/http/server"
 )
 
@@ -42,15 +41,12 @@ func NewAuthHTTPHandler(
 	}
 }
 
-func (h *AuthHTTPHandler) Routes(
-	middleware ...core_http_middleware.Middleware,
-) []core_http_server.Route {
+func (h *AuthHTTPHandler) Routes() []core_http_server.Route {
 	return []core_http_server.Route{
 		{
-			Method:     http.MethodPost,
-			Path:       "/register",
-			Handler:    h.Register,
-			Middleware: middleware,
+			Method:  http.MethodPost,
+			Path:    "/register",
+			Handler: h.Register,
 		},
 		{
 			Method:  http.MethodPost,
