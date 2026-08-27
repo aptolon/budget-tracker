@@ -13,13 +13,20 @@ env-down:
 env-cleanup:
 	@read -p "Очистить все volume файлы окружения? Опасность утери данных. [y/n]: " ans; \
 	if [ "$$ans" = "y" ]; then \
-		make env-down && \
+		docker compose down bt-postgres port-forwarder && \
 		rm -rf ${PROJECT_ROOT}/out/pgdata && \
 		echo "Файлы окружения очищены"; \
 	else \
 		echo "Очистка окружения отменена"; \
 	fi;
-
+clean-logs: 
+	@read -p "Очистить все логи? Опасность утери данных. [y/n]: " ans; \
+	if [ "$$ans" = "y" ]; then \
+		rm -rf ${PROJECT_ROOT}/out/logs && \
+		echo "Файлы логов очищены"; \
+	else \
+		echo "Очистка логов отменена"; \
+	fi;
 env-port-forward:
 	docker compose up -d port-forwarder
 
@@ -54,3 +61,9 @@ migrate-up:
 migrate-down:
 	@make migrate-action action=down
 	
+budget-tracker-run:
+	@export LOGGER_FOLDER=${PROJECT_ROOT}/out/logs && \
+	export POSTGRES_HOST=localhost && \
+	export HTTP_SECURE_COOKIES=false && \
+	go mod tidy && \
+	go run cmd/api/main.go
