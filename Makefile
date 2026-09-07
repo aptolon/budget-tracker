@@ -28,10 +28,10 @@ clean-logs:
 		echo "Очистка логов отменена"; \
 	fi;
 env-port-forward:
-	docker compose up -d port-forwarder
+	@docker compose up -d port-forwarder
 
 env-port-close:
-	docker compose down port-forwarder
+	@docker compose down port-forwarder
 
 ps: 
 	@docker compose ps

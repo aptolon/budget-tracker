@@ -56,9 +56,10 @@ func Panic() Middleware {
 
 			defer func() {
 				if p := recover(); p != nil {
+
 					responseHandler.PanicResponse(
 						p,
-						"during handle HHTP got unexpected panic",
+						"during handle HTTP got unexpected panic",
 					)
 				}
 			}()
@@ -90,7 +91,7 @@ func Trace() Middleware {
 	}
 }
 
-func Auth(token crypto_token.TokenService) Middleware {
+func Auth(tokenService crypto_token.TokenService) Middleware {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			ctx := r.Context()
@@ -112,7 +113,7 @@ func Auth(token crypto_token.TokenService) Middleware {
 				)
 				return
 			}
-			claims, err := token.Validate(cookie.Value)
+			claims, err := tokenService.Validate(cookie.Value)
 
 			if err != nil {
 				responseHandler.ErrorResponse(core_errors.ErrInvalidCredentials, "invalid access token")

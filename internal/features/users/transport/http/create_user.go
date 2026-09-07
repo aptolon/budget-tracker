@@ -1,4 +1,4 @@
-package auth_transport_http
+package users_transport_http
 
 import (
 	"net/http"
@@ -8,41 +8,39 @@ import (
 	core_http_response "github.com/aptolon/budget-tracker/internal/core/transport/http/response"
 )
 
-type LoginRequest AuthRequest
+type CreateUserRequest UserRequest
 
-func (h *AuthHTTPHandler) Login(rw http.ResponseWriter, r *http.Request) {
+type CreateUserResponse UserResponse
+
+func (h *UsersHTTPHandler) CreateUser(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
 
 	responseHandler := core_http_response.NewHTTPResponseHeader(log, rw)
 
-	var request LoginRequest
+	var request CreateUserRequest
 	if err := core_http_request.DecodeAndValidate(r, &request); err != nil {
-		responseHandler.ErrorResponse(err, "failed to decode and validate HTTP request")
+		responseHandler.ErrorResponse(
+			err,
+			"failed to decode and validate HTTP request",
+		)
 
 		return
 	}
 
-	accessToken, refreshToken, err := h.authService.Login(
+	userDomain, err := h.usersService.CreateUser(
 		ctx,
 		request.Login,
+		request.Role,
 		request.Password,
 	)
 	if err != nil {
-		responseHandler.ErrorResponse(err, "failed to login")
+		responseHandler.ErrorResponse(
+			err,
+			"failed to create user",
+		)
 		return
 	}
-
-	responseHandler.SetAccessTokenCookie(
-		accessToken,
-		h.secureCookies,
-	)
-
-	responseHandler.SetRefreshTokenCookie(
-		refreshToken,
-		h.secureCookies,
-	)
-
-	responseHandler.NoContentResponse()
-
+	response := CreateUserResponse(userResponseFromDomain(userDomain))
+	responseHandler.JSONResponse(response, http.StatusCreated)
 }

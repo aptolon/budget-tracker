@@ -8,11 +8,12 @@ import (
 	"github.com/aptolon/budget-tracker/internal/core/domain"
 	core_errors "github.com/aptolon/budget-tracker/internal/core/errors"
 	core_postgres_pool "github.com/aptolon/budget-tracker/internal/core/repository/postgres/pool"
+	"github.com/google/uuid"
 )
 
-func (r *UsersRepository) GetUserByLogin(
+func (r *UsersRepository) GetUser(
 	ctx context.Context,
-	login string,
+	userID uuid.UUID,
 ) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
@@ -20,21 +21,20 @@ func (r *UsersRepository) GetUserByLogin(
 	query := `
 		SELECT id, version, role, login, password_hash
 		FROM users
-		WHERE login = $1;
+		WHERE id = $1;
 	`
-
 	row := r.pool.QueryRow(
 		ctx,
 		query,
-		login,
+		userID,
 	)
 
 	var userModel UserModel
 	if err := userModel.Scan(row); err != nil {
 		if errors.Is(err, core_postgres_pool.ErrNoRows) {
 			return domain.User{}, fmt.Errorf(
-				"user with login='%s': %w",
-				login,
+				"user with id='%s': %w",
+				userID,
 				core_errors.ErrNotFound,
 			)
 		}

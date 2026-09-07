@@ -8,9 +8,9 @@ import (
 	core_http_response "github.com/aptolon/budget-tracker/internal/core/transport/http/response"
 )
 
-type RegisterRequest UserDTORequest
+type RegisterRequest AuthRequest
 
-type RegisterResponse UserDTOResponse
+type RegisterResponse AuthResponse
 
 func (h *AuthHTTPHandler) Register(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
@@ -40,7 +40,7 @@ func (h *AuthHTTPHandler) Register(rw http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-	response := UserDTOResponse(userDTOFromDomain(userDomain))
+	response := RegisterResponse(authResponseFromDomain(userDomain))
 
 	responseHandler.JSONResponse(response, http.StatusCreated)
 
