@@ -5,15 +5,15 @@ import (
 	"github.com/google/uuid"
 )
 
-type UserDTOResponse struct {
+type AuthResponse struct {
 	ID      uuid.UUID `json:"id"`
 	Version int       `json:"version"`
 	Role    string    `json:"role"`
 	Login   string    `json:"login"`
 }
 
-func userDTOFromDomain(user domain.User) UserDTOResponse {
-	return UserDTOResponse{
+func authResponseFromDomain(user domain.User) AuthResponse {
+	return AuthResponse{
 		ID:      user.ID,
 		Version: user.Version,
 		Role:    user.Role,
@@ -21,7 +21,7 @@ func userDTOFromDomain(user domain.User) UserDTOResponse {
 	}
 }
 
-type UserDTORequest struct {
+type AuthRequest struct {
 	Login    string `json:"login" validate:"required,min=3,max=32"`
 	Password string `json:"password" validate:"required,min=8,max=128"`
 }

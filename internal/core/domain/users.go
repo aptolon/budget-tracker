@@ -67,7 +67,17 @@ func ValidateLogin(login string) error {
 
 	return nil
 }
+func ValidateRole(role string) error {
+	if role != RoleUser && role != RoleAdmin {
+		return fmt.Errorf(
+			"invalid `role` value %q: %w",
+			role,
+			core_errors.ErrInvalidArgument,
+		)
+	}
 
+	return nil
+}
 func ValidatePassword(password string) error {
 	passwordLen := len([]rune(password))
 	if passwordLen < 8 || passwordLen > 128 {

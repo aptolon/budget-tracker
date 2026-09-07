@@ -10,9 +10,12 @@ import (
 	core_logger "github.com/aptolon/budget-tracker/internal/core/logger"
 	core_http_middleware "github.com/aptolon/budget-tracker/internal/core/transport/http/middleware"
 	core_http_server "github.com/aptolon/budget-tracker/internal/core/transport/http/server"
+
 	auth_service "github.com/aptolon/budget-tracker/internal/features/auth/service"
 	auth_transport_http "github.com/aptolon/budget-tracker/internal/features/auth/transport/http"
 	users_postgres_repository "github.com/aptolon/budget-tracker/internal/features/users/repository/postgres"
+	users_service "github.com/aptolon/budget-tracker/internal/features/users/service"
+	users_transport_http "github.com/aptolon/budget-tracker/internal/features/users/transport/http"
 
 	crypto_hasher "github.com/aptolon/budget-tracker/internal/core/crypto/hasher"
 	crypto_token "github.com/aptolon/budget-tracker/internal/core/crypto/token"
@@ -45,20 +48,22 @@ func main() {
 	}
 	defer pool.Close()
 
-	logger.Debug("Initializing features", zap.String("features", "auth"))
-	usersRepository := users_postgres_repository.NewUsersRepository(pool)
-
-	hasher := crypto_hasher.NewBcryptHasher(crypto_hasher.NewConfigMust())
-	tokenService := crypto_token.NewJWT(crypto_token.NewConfigMust())
-
-	authService := auth_service.NewAuthService(usersRepository, hasher, tokenService)
-
 	httpConfig := core_http_server.NewConfigMust()
 
-	authTransportHTTP := auth_transport_http.NewAuthHTTPHandler(
-		authService,
-		httpConfig.SecureCookies,
-	)
+	logger.Debug("Initializing hasher")
+	hasher := crypto_hasher.NewBcryptHasher(crypto_hasher.NewConfigMust())
+
+	logger.Debug("Initializing token service")
+	tokenService := crypto_token.NewJWT(crypto_token.NewConfigMust())
+
+	logger.Debug("Initializing features", zap.String("features", "auth"))
+	usersRepository := users_postgres_repository.NewUsersRepository(pool)
+	authService := auth_service.NewAuthService(usersRepository, hasher, tokenService)
+	authTransportHTTP := auth_transport_http.NewAuthHTTPHandler(authService, httpConfig.SecureCookies)
+
+	logger.Debug("Initializing features", zap.String("features", "users"))
+	usersService := users_service.NewUsersService(usersRepository, hasher)
+	usersTransportHTTP := users_transport_http.NewUsersHTTPHandler(usersService, httpConfig.SecureCookies)
 
 	logger.Debug("Initializing HTTP server")
 	httpServer := core_http_server.NewHTTPServer(
@@ -70,10 +75,18 @@ func main() {
 		core_http_middleware.Panic(),
 	)
 
+	auth := core_http_middleware.Auth(tokenService)
+	requireAdmin := core_http_middleware.RequireAdmin()
+
 	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
+	apiVersionRouter.AddRoutes(authTransportHTTP.Routes()...)
 	apiVersionRouter.AddRoutes(
-		authTransportHTTP.Routes()...,
+		usersTransportHTTP.Routes(
+			auth,
+			requireAdmin,
+		)...,
 	)
+
 	httpServer.RegisterAPIRouters(apiVersionRouter)
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run error: %w", zap.Error(err))
