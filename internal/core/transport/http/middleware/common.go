@@ -101,7 +101,7 @@ func Auth(tokenService crypto_token.TokenService) Middleware {
 			if err != nil {
 				if err == http.ErrNoCookie {
 					responseHandler.ErrorResponse(
-						core_errors.ErrInvalidCredentials,
+						core_errors.ErrUnauthorized,
 						"access token not found",
 					)
 					return
@@ -116,7 +116,7 @@ func Auth(tokenService crypto_token.TokenService) Middleware {
 			claims, err := tokenService.Validate(cookie.Value)
 
 			if err != nil {
-				responseHandler.ErrorResponse(core_errors.ErrInvalidCredentials, "invalid access token")
+				responseHandler.ErrorResponse(core_errors.ErrUnauthorized, "invalid access token")
 				return
 			}
 			ctx = crypto_token.ClaimsToContext(ctx, claims)

@@ -1,17 +1,18 @@
-package users_transport_http
+package categories_transport_http
 
 import (
 	"fmt"
 	"net/http"
 
+	crypto_token "github.com/aptolon/budget-tracker/internal/core/crypto/token"
 	core_logger "github.com/aptolon/budget-tracker/internal/core/logger"
 	core_http_request "github.com/aptolon/budget-tracker/internal/core/transport/http/request"
 	core_http_response "github.com/aptolon/budget-tracker/internal/core/transport/http/response"
 )
 
-type GetUsersResponse []UserResponse
+type GetCategoriesResponse []CategoryResponse
 
-func (h *UsersHTTPHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
+func (h *CategoriesHTTPHandler) GetCategories(rw http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	log := core_logger.FromContext(ctx)
 
@@ -24,16 +25,17 @@ func (h *UsersHTTPHandler) GetUsers(rw http.ResponseWriter, r *http.Request) {
 		)
 		return
 	}
-	userDomains, err := h.usersService.GetUsers(ctx, limit, offset)
+	claims := crypto_token.ClaimsFromContext(ctx)
+	categoryDomains, err := h.categoriesService.GetCategories(ctx, claims.UserID, limit, offset)
 	if err != nil {
 		responseHandler.ErrorResponse(
 			err,
-			"failed to get users",
+			"failed to get categories",
 		)
 		return
 	}
 
-	response := GetUsersResponse(usersResponseFromDomains(userDomains))
+	response := GetCategoriesResponse(categoriesResponseFromDomains(categoryDomains))
 	responseHandler.JSONResponse(response, http.StatusOK)
 }
 

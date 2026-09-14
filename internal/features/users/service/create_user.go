@@ -32,7 +32,7 @@ func (s *UsersService) CreateUser(
 	}
 
 	if exists {
-		return domain.User{}, core_errors.ErrLoginTaken
+		return domain.User{}, core_errors.ErrConflict
 	}
 
 	passwordHash, err := s.hasher.Hash(password)

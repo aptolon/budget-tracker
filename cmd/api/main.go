@@ -13,9 +13,14 @@ import (
 
 	auth_service "github.com/aptolon/budget-tracker/internal/features/auth/service"
 	auth_transport_http "github.com/aptolon/budget-tracker/internal/features/auth/transport/http"
+
 	users_postgres_repository "github.com/aptolon/budget-tracker/internal/features/users/repository/postgres"
 	users_service "github.com/aptolon/budget-tracker/internal/features/users/service"
 	users_transport_http "github.com/aptolon/budget-tracker/internal/features/users/transport/http"
+
+	categories_postgres_repository "github.com/aptolon/budget-tracker/internal/features/categories/repository/postgres"
+	categories_service "github.com/aptolon/budget-tracker/internal/features/categories/service"
+	categories_transport_http "github.com/aptolon/budget-tracker/internal/features/categories/transport/http"
 
 	crypto_hasher "github.com/aptolon/budget-tracker/internal/core/crypto/hasher"
 	crypto_token "github.com/aptolon/budget-tracker/internal/core/crypto/token"
@@ -65,6 +70,11 @@ func main() {
 	usersService := users_service.NewUsersService(usersRepository, hasher)
 	usersTransportHTTP := users_transport_http.NewUsersHTTPHandler(usersService, httpConfig.SecureCookies)
 
+	logger.Debug("Initializing features", zap.String("features", "categories"))
+	categoriesRepository := categories_postgres_repository.NewCategoriesRepository(pool)
+	categoriesService := categories_service.NewCategoriesService(categoriesRepository)
+	categoriesTransportHTTP := categories_transport_http.NewCategoriesHTTPHandler(categoriesService)
+
 	logger.Debug("Initializing HTTP server")
 	httpServer := core_http_server.NewHTTPServer(
 		httpConfig,
@@ -79,13 +89,10 @@ func main() {
 	requireAdmin := core_http_middleware.RequireAdmin()
 
 	apiVersionRouter := core_http_server.NewAPIVersionRouter(core_http_server.ApiVersion1)
+
 	apiVersionRouter.AddRoutes(authTransportHTTP.Routes()...)
-	apiVersionRouter.AddRoutes(
-		usersTransportHTTP.Routes(
-			auth,
-			requireAdmin,
-		)...,
-	)
+	apiVersionRouter.AddRoutes(usersTransportHTTP.Routes(auth, requireAdmin)...)
+	apiVersionRouter.AddRoutes(categoriesTransportHTTP.Routes(auth)...)
 
 	httpServer.RegisterAPIRouters(apiVersionRouter)
 	if err := httpServer.Run(ctx); err != nil {

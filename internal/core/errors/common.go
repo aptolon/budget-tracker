@@ -6,16 +6,13 @@ var (
 	// 400
 	ErrInvalidArgument = errors.New("invalid argument")
 	//401
-	ErrInvalidCredentials  = errors.New("invalid credentials")
-	ErrInvalidRefreshToken = errors.New("invalid refresh token")
+	ErrUnauthorized = errors.New("unauthorized")
 	//403
 	ErrForbidden = errors.New("forbidden")
 	//404
 	ErrNotFound = errors.New("not found")
 	//409
-	ErrConflict   = errors.New("conflict")
-	ErrLoginTaken = errors.New("login already taken")
-
+	ErrConflict = errors.New("conflict")
 	//500
 	ErrInternal = errors.New("internal")
 )
