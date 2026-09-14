@@ -1,4 +1,4 @@
-package users_postgres_repository
+package categories_postgres_repository
 
 import (
 	"context"
@@ -10,33 +10,31 @@ import (
 	core_postgres_pool "github.com/aptolon/budget-tracker/internal/core/repository/postgres/pool"
 )
 
-func (r *UsersRepository) CreateUser(
+func (r *CategoriesRepository) CreateCategory(
 	ctx context.Context,
-	user domain.User,
+	category domain.Category,
 ) error {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
 	query := `
-		INSERT INTO users (id, version, role, login, password_hash)
-		VALUES ($1, $2, $3, $4, $5);
+		INSERT INTO categories (id, version, user_id, title)
+		VALUES ($1, $2, $3, $4);
 	`
 
 	_, err := r.pool.Exec(
 		ctx,
 		query,
-		user.ID,
-		user.Version,
-		user.Role,
-		user.Login,
-		user.PasswordHash,
+		category.ID,
+		category.Version,
+		category.UserID,
+		category.Title,
 	)
 	if err != nil {
 		if errors.Is(err, core_postgres_pool.ErrUniqueViolation) {
-			return fmt.Errorf("create user: %w", core_errors.ErrConflict)
+			return fmt.Errorf("create category: %w", core_errors.ErrConflict)
 		}
-
-		return fmt.Errorf("create user: %w", err)
+		return fmt.Errorf("create category: %w", err)
 	}
 
 	return nil

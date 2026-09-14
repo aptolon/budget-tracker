@@ -102,12 +102,10 @@ func (h *HTTPResponseHeader) ErrorResponse(err error, msg string) {
 		statusCode = http.StatusBadRequest
 		logFunc = h.log.Warn
 
-	case errors.Is(err, core_errors.ErrInvalidRefreshToken):
+	case errors.Is(err, core_errors.ErrUnauthorized):
 		statusCode = http.StatusUnauthorized
 		logFunc = h.log.Warn
-	case errors.Is(err, core_errors.ErrInvalidCredentials):
-		statusCode = http.StatusUnauthorized
-		logFunc = h.log.Warn
+
 	case errors.Is(err, core_errors.ErrForbidden):
 		statusCode = http.StatusForbidden
 		logFunc = h.log.Warn
@@ -119,9 +117,6 @@ func (h *HTTPResponseHeader) ErrorResponse(err error, msg string) {
 		statusCode = http.StatusConflict
 		logFunc = h.log.Warn
 
-	case errors.Is(err, core_errors.ErrLoginTaken):
-		statusCode = http.StatusConflict
-		logFunc = h.log.Warn
 	case errors.Is(err, core_errors.ErrInternal):
 		statusCode = http.StatusInternalServerError
 		logFunc = h.log.Error

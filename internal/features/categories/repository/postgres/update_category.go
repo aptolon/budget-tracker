@@ -1,4 +1,4 @@
-package users_postgres_repository
+package categories_postgres_repository
 
 import (
 	"context"
@@ -10,39 +10,36 @@ import (
 	core_postgres_pool "github.com/aptolon/budget-tracker/internal/core/repository/postgres/pool"
 )
 
-func (r *UsersRepository) UpdateUser(
+func (r *CategoriesRepository) UpdateCategory(
 	ctx context.Context,
-	user domain.User,
+	category domain.Category,
 ) error {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
 	query := `
-	UPDATE users
+	UPDATE categories
 	SET 
 		version = version + 1,
-		role = $3,
-		login = $4,
-		password_hash = $5
-	WHERE id = $1 AND version = $2;
+		title = $4
+	WHERE id = $1 AND version = $2 AND user_id = $3;
 	`
 
 	result, err := r.pool.Exec(
 		ctx,
 		query,
-		user.ID,
-		user.Version,
-		user.Role,
-		user.Login,
-		user.PasswordHash,
+		category.ID,
+		category.Version,
+		category.UserID,
+		category.Title,
 	)
 
 	if err != nil {
 		if errors.Is(err, core_postgres_pool.ErrUniqueViolation) {
-			return fmt.Errorf("update user: %w", core_errors.ErrConflict)
+			return fmt.Errorf("update category: %w", core_errors.ErrConflict)
 		}
 
-		return fmt.Errorf("update user: %w", err)
+		return fmt.Errorf("update category: %w", err)
 	}
 
 	if result.RowsAffected() == 0 {

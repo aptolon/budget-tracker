@@ -26,7 +26,7 @@ func (s *AuthService) Register(
 	}
 
 	if exists {
-		return domain.User{}, core_errors.ErrLoginTaken
+		return domain.User{}, core_errors.ErrConflict
 	}
 	passwordHash, err := s.hasher.Hash(password)
 	if err != nil {

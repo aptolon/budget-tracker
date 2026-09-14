@@ -29,7 +29,7 @@ func (s *UsersService) PatchUser(
 			return domain.User{}, fmt.Errorf("patch user: %w", err)
 		}
 		if exists {
-			return domain.User{}, core_errors.ErrLoginTaken
+			return domain.User{}, core_errors.ErrConflict
 		}
 		user.Login = *login
 	}

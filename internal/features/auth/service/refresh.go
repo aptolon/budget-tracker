@@ -18,7 +18,7 @@ func (s *AuthService) Refresh(
 	if err != nil {
 		return "", fmt.Errorf(
 			"%w: %v",
-			core_errors.ErrInvalidRefreshToken,
+			core_errors.ErrUnauthorized,
 			err,
 		)
 	}
@@ -26,7 +26,7 @@ func (s *AuthService) Refresh(
 	if claims.TokenType != crypto_token.TokenTypeRefresh {
 		return "", fmt.Errorf(
 			"%w: invalid token type: %q",
-			core_errors.ErrInvalidRefreshToken,
+			core_errors.ErrUnauthorized,
 			claims.TokenType,
 		)
 	}

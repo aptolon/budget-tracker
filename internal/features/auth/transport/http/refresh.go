@@ -19,7 +19,7 @@ func (h *AuthHTTPHandler) Refresh(rw http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err == http.ErrNoCookie {
 			responseHandler.ErrorResponse(
-				core_errors.ErrInvalidCredentials,
+				core_errors.ErrUnauthorized,
 				"refresh token not found",
 			)
 			return

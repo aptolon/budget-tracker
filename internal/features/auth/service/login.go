@@ -28,7 +28,7 @@ func (s *AuthService) Login(
 		if errors.Is(err, core_errors.ErrNotFound) {
 			return "", "", fmt.Errorf(
 				"login user: %w",
-				core_errors.ErrInvalidCredentials,
+				core_errors.ErrUnauthorized,
 			)
 		}
 
@@ -38,7 +38,7 @@ func (s *AuthService) Login(
 	if err := s.hasher.Compare(password, user.PasswordHash); err != nil {
 		return "", "", fmt.Errorf(
 			"login user: %w",
-			core_errors.ErrInvalidCredentials,
+			core_errors.ErrUnauthorized,
 		)
 	}
 
