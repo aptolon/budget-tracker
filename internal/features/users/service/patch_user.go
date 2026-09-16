@@ -29,7 +29,7 @@ func (s *UsersService) PatchUser(
 			return domain.User{}, fmt.Errorf("patch user: %w", err)
 		}
 		if exists {
-			return domain.User{}, core_errors.ErrConflict
+			return domain.User{}, fmt.Errorf("login already taken: %w", core_errors.ErrConflict)
 		}
 		user.Login = *login
 	}
@@ -50,14 +50,13 @@ func (s *UsersService) PatchUser(
 		}
 		user.Role = *role
 	}
-	err = s.usersRepository.UpdateUser(
+	user, err = s.usersRepository.UpdateUser(
 		ctx,
 		user,
 	)
 	if err != nil {
 		return domain.User{}, fmt.Errorf("patch user: %w", err)
 	}
-	user.Version++
 	return user, nil
 
 }

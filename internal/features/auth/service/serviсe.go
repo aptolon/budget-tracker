@@ -17,7 +17,7 @@ type UsersRepository interface {
 	CreateUser(
 		ctx context.Context,
 		user domain.User,
-	) error
+	) (domain.User, error)
 
 	ExistUserByLogin(
 		ctx context.Context,

@@ -20,7 +20,8 @@ func (s *CategoriesService) CreateCategory(
 		userID,
 		title,
 	)
-	if err := s.categoriesRepository.CreateCategory(ctx, category); err != nil {
+	category, err := s.categoriesRepository.CreateCategory(ctx, category)
+	if err != nil {
 		return domain.Category{}, fmt.Errorf("create category: %w", err)
 	}
 	return category, nil

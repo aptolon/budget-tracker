@@ -2,27 +2,25 @@ package users_postgres_repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/aptolon/budget-tracker/internal/core/domain"
-	core_errors "github.com/aptolon/budget-tracker/internal/core/errors"
-	core_postgres_pool "github.com/aptolon/budget-tracker/internal/core/repository/postgres/pool"
 )
 
 func (r *UsersRepository) CreateUser(
 	ctx context.Context,
 	user domain.User,
-) error {
+) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
 	query := `
 		INSERT INTO users (id, version, role, login, password_hash)
-		VALUES ($1, $2, $3, $4, $5);
+		VALUES ($1, $2, $3, $4, $5)
+		RETURNING id, version, role, login, password_hash;
 	`
 
-	_, err := r.pool.Exec(
+	row := r.pool.QueryRow(
 		ctx,
 		query,
 		user.ID,
@@ -31,13 +29,12 @@ func (r *UsersRepository) CreateUser(
 		user.Login,
 		user.PasswordHash,
 	)
-	if err != nil {
-		if errors.Is(err, core_postgres_pool.ErrUniqueViolation) {
-			return fmt.Errorf("create user: %w", core_errors.ErrConflict)
-		}
-
-		return fmt.Errorf("create user: %w", err)
+	var userModel UserModel
+	if err := userModel.Scan(row); err != nil {
+		return domain.User{}, fmt.Errorf("scan error: %w", err)
 	}
 
-	return nil
+	userDomain := modelToDomain(userModel)
+
+	return userDomain, nil
 }

@@ -26,7 +26,12 @@ func (s *AuthService) Register(
 	}
 
 	if exists {
-		return domain.User{}, core_errors.ErrConflict
+
+		return domain.User{}, fmt.Errorf(
+			"user with login '%s' already exists: %w",
+			login,
+			core_errors.ErrConflict,
+		)
 	}
 	passwordHash, err := s.hasher.Hash(password)
 	if err != nil {
@@ -38,9 +43,11 @@ func (s *AuthService) Register(
 		login,
 		passwordHash,
 	)
-	if err = s.usersRepository.CreateUser(ctx, user); err != nil {
+	user, err = s.usersRepository.CreateUser(ctx, user)
+	if err != nil {
 		return domain.User{}, fmt.Errorf("register user: %w", err)
 	}
+
 	return user, nil
 
 }

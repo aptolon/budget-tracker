@@ -2,7 +2,6 @@ package domain
 
 import (
 	"fmt"
-	"strings"
 
 	core_errors "github.com/aptolon/budget-tracker/internal/core/errors"
 	"github.com/google/uuid"
@@ -26,7 +25,7 @@ func NewCategory(
 		ID:      id,
 		Version: version,
 		UserID:  userID,
-		Title:   normalizeTitle(title),
+		Title:   NormalizeString(title),
 	}
 
 }
@@ -57,13 +56,4 @@ func ValidateTitle(title string) error {
 		)
 	}
 	return nil
-}
-
-func normalizeTitle(title string) string {
-	if title == "" {
-		return ""
-	}
-
-	s := strings.ToLower(title)
-	return strings.ToUpper(s[:1]) + s[1:]
 }

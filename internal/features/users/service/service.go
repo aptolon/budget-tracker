@@ -16,7 +16,7 @@ type UsersRepository interface {
 	CreateUser(
 		ctx context.Context,
 		user domain.User,
-	) error
+	) (domain.User, error)
 	GetUsers(
 		ctx context.Context,
 		limit *int,
@@ -29,7 +29,7 @@ type UsersRepository interface {
 	UpdateUser(
 		ctx context.Context,
 		user domain.User,
-	) error
+	) (domain.User, error)
 	DeleteUser(
 		ctx context.Context,
 		userID uuid.UUID,

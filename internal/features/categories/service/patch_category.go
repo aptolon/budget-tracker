@@ -18,11 +18,10 @@ func (s *CategoriesService) PatchCategory(
 	if err != nil {
 		return domain.Category{}, fmt.Errorf("get category: %w", err)
 	}
-	category.Title = title
-	err = s.categoriesRepository.UpdateCategory(ctx, category)
+	category.Title = domain.NormalizeString(title)
+	category, err = s.categoriesRepository.UpdateCategory(ctx, category)
 	if err != nil {
 		return domain.Category{}, fmt.Errorf("update category: %w", err)
 	}
-	category.Version++
 	return category, nil
 }

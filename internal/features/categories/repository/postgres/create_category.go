@@ -13,16 +13,17 @@ import (
 func (r *CategoriesRepository) CreateCategory(
 	ctx context.Context,
 	category domain.Category,
-) error {
+) (domain.Category, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
 	query := `
 		INSERT INTO categories (id, version, user_id, title)
-		VALUES ($1, $2, $3, $4);
+		VALUES ($1, $2, $3, $4)
+		RETURNING id, version, user_id, title;
 	`
 
-	_, err := r.pool.Exec(
+	row := r.pool.QueryRow(
 		ctx,
 		query,
 		category.ID,
@@ -30,12 +31,20 @@ func (r *CategoriesRepository) CreateCategory(
 		category.UserID,
 		category.Title,
 	)
-	if err != nil {
+
+	var categoryModel CategoryModel
+	if err := categoryModel.Scan(row); err != nil {
 		if errors.Is(err, core_postgres_pool.ErrUniqueViolation) {
-			return fmt.Errorf("create category: %w", core_errors.ErrConflict)
+			return domain.Category{}, fmt.Errorf(
+				"category with title '%s' already exists: %w",
+				category.Title,
+				core_errors.ErrConflict,
+			)
 		}
-		return fmt.Errorf("create category: %w", err)
+		return domain.Category{}, fmt.Errorf("scan error: %w", err)
 	}
 
-	return nil
+	categoryDomain := modelToDomain(categoryModel)
+
+	return categoryDomain, nil
 }
