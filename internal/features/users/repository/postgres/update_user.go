@@ -2,18 +2,15 @@ package users_postgres_repository
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/aptolon/budget-tracker/internal/core/domain"
-	core_errors "github.com/aptolon/budget-tracker/internal/core/errors"
-	core_postgres_pool "github.com/aptolon/budget-tracker/internal/core/repository/postgres/pool"
 )
 
 func (r *UsersRepository) UpdateUser(
 	ctx context.Context,
 	user domain.User,
-) error {
+) (domain.User, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
@@ -24,10 +21,11 @@ func (r *UsersRepository) UpdateUser(
 		role = $3,
 		login = $4,
 		password_hash = $5
-	WHERE id = $1 AND version = $2;
+	WHERE id = $1 AND version = $2
+	RETURNING id, version, role, login, password_hash;
 	`
 
-	result, err := r.pool.Exec(
+	row := r.pool.QueryRow(
 		ctx,
 		query,
 		user.ID,
@@ -36,17 +34,12 @@ func (r *UsersRepository) UpdateUser(
 		user.Login,
 		user.PasswordHash,
 	)
-
-	if err != nil {
-		if errors.Is(err, core_postgres_pool.ErrUniqueViolation) {
-			return fmt.Errorf("update user: %w", core_errors.ErrConflict)
-		}
-
-		return fmt.Errorf("update user: %w", err)
+	var userModel UserModel
+	if err := userModel.Scan(row); err != nil {
+		return domain.User{}, fmt.Errorf("scan error: %w", err)
 	}
 
-	if result.RowsAffected() == 0 {
-		return core_errors.ErrConflict
-	}
-	return nil
+	userDomain := modelToDomain(userModel)
+
+	return userDomain, nil
 }

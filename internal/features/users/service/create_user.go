@@ -32,7 +32,7 @@ func (s *UsersService) CreateUser(
 	}
 
 	if exists {
-		return domain.User{}, core_errors.ErrConflict
+		return domain.User{}, fmt.Errorf("login already taken: %w", core_errors.ErrConflict)
 	}
 
 	passwordHash, err := s.hasher.Hash(password)
@@ -45,9 +45,9 @@ func (s *UsersService) CreateUser(
 		login,
 		passwordHash,
 	)
-	if err = s.usersRepository.CreateUser(ctx, user); err != nil {
+	user, err = s.usersRepository.CreateUser(ctx, user)
+	if err != nil {
 		return domain.User{}, fmt.Errorf("create user: %w", err)
 	}
 	return user, nil
-
 }

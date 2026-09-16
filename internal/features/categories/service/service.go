@@ -14,7 +14,7 @@ type CategoriesRepository interface {
 	CreateCategory(
 		ctx context.Context,
 		category domain.Category,
-	) error
+	) (domain.Category, error)
 	GetCategories(
 		ctx context.Context,
 		userID uuid.UUID,
@@ -34,7 +34,7 @@ type CategoriesRepository interface {
 	UpdateCategory(
 		ctx context.Context,
 		category domain.Category,
-	) error
+	) (domain.Category, error)
 }
 
 func NewCategoriesService(

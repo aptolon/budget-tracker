@@ -13,7 +13,7 @@ import (
 func (r *CategoriesRepository) UpdateCategory(
 	ctx context.Context,
 	category domain.Category,
-) error {
+) (domain.Category, error) {
 	ctx, cancel := context.WithTimeout(ctx, r.pool.OpTimeout())
 	defer cancel()
 
@@ -22,10 +22,11 @@ func (r *CategoriesRepository) UpdateCategory(
 	SET 
 		version = version + 1,
 		title = $4
-	WHERE id = $1 AND version = $2 AND user_id = $3;
+	WHERE id = $1 AND version = $2 AND user_id = $3
+	RETURNING id, version, user_id, title;
 	`
 
-	result, err := r.pool.Exec(
+	row := r.pool.QueryRow(
 		ctx,
 		query,
 		category.ID,
@@ -34,16 +35,19 @@ func (r *CategoriesRepository) UpdateCategory(
 		category.Title,
 	)
 
-	if err != nil {
+	var categoryModel CategoryModel
+	if err := categoryModel.Scan(row); err != nil {
 		if errors.Is(err, core_postgres_pool.ErrUniqueViolation) {
-			return fmt.Errorf("update category: %w", core_errors.ErrConflict)
+			return domain.Category{}, fmt.Errorf(
+				"category with title '%s' already exists: %w",
+				category.Title,
+				core_errors.ErrConflict,
+			)
 		}
-
-		return fmt.Errorf("update category: %w", err)
+		return domain.Category{}, fmt.Errorf("scan error: %w", err)
 	}
 
-	if result.RowsAffected() == 0 {
-		return core_errors.ErrConflict
-	}
-	return nil
+	categoryDomain := modelToDomain(categoryModel)
+
+	return categoryDomain, nil
 }
