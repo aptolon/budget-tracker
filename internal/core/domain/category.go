@@ -1,9 +1,6 @@
 package domain
 
 import (
-	"fmt"
-
-	core_errors "github.com/aptolon/budget-tracker/internal/core/errors"
 	"github.com/google/uuid"
 )
 
@@ -44,16 +41,4 @@ func CreateCategory(
 		userID,
 		title,
 	)
-}
-
-func ValidateTitle(title string) error {
-	titleLen := len([]rune(title))
-	if titleLen < 3 || titleLen > 32 {
-		return fmt.Errorf(
-			"invalid `title` len %d: %w",
-			titleLen,
-			core_errors.ErrInvalidArgument,
-		)
-	}
-	return nil
 }

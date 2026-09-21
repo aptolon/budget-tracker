@@ -22,6 +22,10 @@ import (
 	categories_service "github.com/aptolon/budget-tracker/internal/features/categories/service"
 	categories_transport_http "github.com/aptolon/budget-tracker/internal/features/categories/transport/http"
 
+	subcategories_postgres_repository "github.com/aptolon/budget-tracker/internal/features/subcategories/repository/postgres"
+	subcategories_service "github.com/aptolon/budget-tracker/internal/features/subcategories/service"
+	subcategories_transport_http "github.com/aptolon/budget-tracker/internal/features/subcategories/transport/http"
+
 	crypto_hasher "github.com/aptolon/budget-tracker/internal/core/crypto/hasher"
 	crypto_token "github.com/aptolon/budget-tracker/internal/core/crypto/token"
 
@@ -75,6 +79,11 @@ func main() {
 	categoriesService := categories_service.NewCategoriesService(categoriesRepository)
 	categoriesTransportHTTP := categories_transport_http.NewCategoriesHTTPHandler(categoriesService)
 
+	logger.Debug("Initializing features", zap.String("features", "subcategories"))
+	subcategoriesRepository := subcategories_postgres_repository.NewSubcategoriesRepository(pool)
+	subcategoriesService := subcategories_service.NewSubcategoriesService(subcategoriesRepository)
+	subcategoriesTransportHTTP := subcategories_transport_http.NewSubcategoriesHTTPHandler(subcategoriesService)
+
 	logger.Debug("Initializing HTTP server")
 	httpServer := core_http_server.NewHTTPServer(
 		httpConfig,
@@ -93,7 +102,7 @@ func main() {
 	apiVersionRouter.AddRoutes(authTransportHTTP.Routes()...)
 	apiVersionRouter.AddRoutes(usersTransportHTTP.Routes(auth, requireAdmin)...)
 	apiVersionRouter.AddRoutes(categoriesTransportHTTP.Routes(auth)...)
-
+	apiVersionRouter.AddRoutes(subcategoriesTransportHTTP.Routes(auth)...)
 	httpServer.RegisterAPIRouters(apiVersionRouter)
 	if err := httpServer.Run(ctx); err != nil {
 		logger.Error("HTTP server run error: %w", zap.Error(err))
