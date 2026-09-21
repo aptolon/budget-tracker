@@ -42,9 +42,9 @@ func (h *SubcategoriesHTTPHandler) CreateSubcategory(rw http.ResponseWriter, r *
 	claims := crypto_token.ClaimsFromContext(ctx)
 	subcategoryDomain, err := h.subcategoriesService.CreateSubcategory(
 		ctx,
-		claims.UserID,
-		request.Title,
 		categoryID,
+		request.Title,
+		claims.UserID,
 	)
 	if err != nil {
 		responseHandler.ErrorResponse(

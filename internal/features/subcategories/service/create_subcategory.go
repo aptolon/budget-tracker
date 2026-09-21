@@ -10,9 +10,9 @@ import (
 
 func (s *SubcategoriesService) CreateSubcategory(
 	ctx context.Context,
-	userID uuid.UUID,
-	title string,
 	categoryID uuid.UUID,
+	title string,
+	userID uuid.UUID,
 ) (domain.Subcategory, error) {
 	if err := domain.ValidateTitle(title); err != nil {
 		return domain.Subcategory{}, fmt.Errorf("validate title: %w", err)
